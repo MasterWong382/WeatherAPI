@@ -1,0 +1,51 @@
+/* Dashboard Card Styling */
+.dashboard-card {
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for elevation effect */
+  overflow: hidden; /* Ensure content stays inside rounded corners */
+  width: 80%; /* Responsive width */
+
+  margin: 16px auto; /* Center align and add vertical spacing */
+  background-color: #fff; /* White background for the card */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px); /* Slight lift on hover */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover */
+}
+
+/* Typography Styling */
+.dashboard-card h6 {
+  font-size: 1.25rem; /* Adjust title size */
+  font-weight: bold; /* Bold title */
+  color: #333; /* Dark gray color */
+  margin-bottom: 8px; /* Spacing under the title */
+}
+
+/* Chart Container */
+.chart-container {
+  width: 100%; /* Ensure chart takes full width */
+  height: 400px; /* Fixed height for the chart */
+  display: flex; /* Flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
+/* Responsive Enhancements */
+@media (max-width: 100%) {
+  .dashboard-card {
+    max-width: 90%; /* Full width on smaller screens */
+    margin: 8px; /* Reduce margin for tighter spaces */
+    padding: 12px; /* Add some padding for better readability */
+  }
+
+  .dashboard-card h6 {
+    font-size: 1.1rem; /* Slightly smaller title on small screens */
+  }
+
+  .chart-container {
+    height: 300px; /* Reduce chart height on smaller screens */
+  }
+}
