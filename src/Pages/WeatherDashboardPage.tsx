@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { saveData, getData } from '../db';
-import ColumnDashboard from '../Components/ColumnDashboard';
-import LineDashboard from '../Components/LineDashboard';
-import AreaChartDashboard from '../Components/AreaChartDashboard';
+import React, { useEffect, useState } from "react";
+import ColumnDashboard from "../Components/ColumnDashboard";
+import LineDashboard from "../Components/LineDashboard";
+import AreaChartDashboard from "../Components/AreaChartDashboard";
 
 interface WeatherData {
   latitude: number;
@@ -29,30 +28,88 @@ interface WeatherData {
   };
 }
 
+const STORE_NAME = "weatherStore";
+const DB_NAME = "WeatherDB";
+
 const WeatherDashboardPage: React.FC = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize IndexedDB
+  const initDB = async (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        }
+      };
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  };
+
+  // Save data to IndexedDB
+  const saveData = async (data: WeatherData) => {
+    const db = await initDB();
+    return new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put({ id: "weatherData", ...data });
+
+      request.onsuccess = () => console.log("Data saved successfully");
+      request.onerror = () => reject(request.error);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  };
+
+  // Get data from IndexedDB
+  const getData = async (): Promise<WeatherData | null> => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get("weatherData");
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  };
+
+  // Fetch weather data
   useEffect(() => {
     const fetchWeatherData = async () => {
       setLoading(true);
       setError(null);
-      const API = "https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=relativehumidity_2m,direct_radiation&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSingapore&start_date=2024-11-01&end_date=2024-11-10";
 
+      // API URL
+      const API =
+        "https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=relativehumidity_2m,direct_radiation&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSingapore&start_date=2024-11-01&end_date=2024-11-10";
 
       try {
-        // Replace with your actual API endpoint
-        const response = await fetch(API);
-        if (!response.ok) {
-          throw new Error('Failed to fetch weather data');
-        }
+        const cachedData = await getData();
+        if (cachedData) {
+          console.log("Using cached data");
+          setWeatherData(cachedData);
+        } else {
+          console.log("Fetching new data");
+          const response = await fetch(API);
+          if (!response.ok) {
+            throw new Error("Failed to fetch weather data");
+          }
 
-        const data: WeatherData = await response.json();
-        setWeatherData(data);
-        console.log(weatherData?.daily)
+          const data: WeatherData = await response.json();
+          setWeatherData(data);
+          await saveData(data);
+        }
       } catch (err) {
-        setError((err as Error).message || 'An error occurred while fetching data');
+        setError((err as Error).message || "An error occurred while fetching data");
       } finally {
         setLoading(false);
       }
@@ -76,9 +133,21 @@ const WeatherDashboardPage: React.FC = () => {
   return (
     <div>
       <h1>Weather Dashboard</h1>
-      <ColumnDashboard y_axis_label='Relative Humidity (%)' time={weatherData.hourly.time} values={weatherData.hourly.relativehumidity_2m} />
-      <LineDashboard time={weatherData.daily.time} minTemperature={ weatherData.daily.temperature_2m_min} maxTemperature={weatherData.daily.temperature_2m_max}/> 
-      <AreaChartDashboard y_axis_label='Direct Radiation (W/m²)' time={ weatherData.hourly.time} values={weatherData.hourly.direct_radiation}/>
+      <ColumnDashboard
+        y_axis_label="Relative Humidity (%)"
+        time={weatherData.hourly.time}
+        values={weatherData.hourly.relativehumidity_2m}
+      />
+      <LineDashboard
+        time={weatherData.daily.time}
+        minTemperature={weatherData.daily.temperature_2m_min}
+        maxTemperature={weatherData.daily.temperature_2m_max}
+      />
+      <AreaChartDashboard
+        y_axis_label="Direct Radiation (W/m²)"
+        time={weatherData.hourly.time}
+        values={weatherData.hourly.direct_radiation}
+      />
     </div>
   );
 };

@@ -20,6 +20,7 @@ const ColumnDashboard: React.FC<ColumnDashboardProps> = ({ y_axis_label, time, v
               y: values,
               type: 'bar',
               marker: { color: 'blue' },
+              
             },
           ]}
           layout={{
@@ -27,9 +28,18 @@ const ColumnDashboard: React.FC<ColumnDashboardProps> = ({ y_axis_label, time, v
             xaxis: { title: 'Time' },
             yaxis: { title: y_axis_label },
             autosize: true, // Ensure the chart is responsive
+            margin: {
+              r: 30,  /* Adjust the right margin to avoid overflow */    
+              t:30
+            },
+          
           }}
+          config={
+            {displayModeBar:false}
+          }
+          
           useResizeHandler={true} // Enable dynamic resizing
-          style={{ width: '100%', height: '100%' }} // Full width and height of the container
+          style={{ width: '100%', height: '80%' }} // Full width and height of the container
         />
       </div>
     </div>

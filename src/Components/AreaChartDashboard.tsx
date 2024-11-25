@@ -33,7 +33,7 @@ const AreaChartDashboard: React.FC<AreaChartProps> = ({ y_axis_label, time, valu
               autosize: true, // Ensure the chart is responsive
             }}
             useResizeHandler={true} // Enable dynamic resizing
-            style={{ width: '100%', height: '100%' }} // Full width and height of the container
+            style={{ width: '100%', height: '80%' }} // Full width and height of the container
           />
         </div>
       </div>

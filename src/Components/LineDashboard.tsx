@@ -37,11 +37,18 @@ const LineDashboard: React.FC<LineDashboardProps> = ({ time, maxTemperature, min
               title: 'Daily Max and Min Temperatures',
               xaxis: { title: 'Time' },
               yaxis: { title: 'Temperature (°C)' },
-              legend: { orientation: 'h', x: 0, y: -0.2 },
+              legend: { orientation: 'h', x: 0.5, y: -0.3},
               autosize: true, // Ensure the chart is responsive
+              margin: {
+                r: 30,  /* Adjust the right margin to avoid overflow */    
+                t:30
+              },
             }}
+            config={
+                {displayModeBar:false}
+              }
             useResizeHandler={true} // Enable dynamic resizing
-            style={{ width: '100%', height: '100%' }} // Full width and height of the container
+            style={{ width: '100%', height: '80%' }} // Full width and height of the container
           />
         </div>
       </div>
