@@ -1,4 +1,3 @@
-import { title } from 'process';
 import React from 'react';
 import Plot from 'react-plotly.js';
 import './DashboardCard.css';
@@ -32,6 +31,9 @@ const AreaChartDashboard: React.FC<AreaChartProps> = ({ y_axis_label, time, valu
               legend: { orientation: 'h', x: 0, y: -0.2 },
               autosize: true, // Ensure the chart is responsive
             }}
+            config={
+                {displayModeBar:false}
+              }
             useResizeHandler={true} // Enable dynamic resizing
             style={{ width: '100%', height: '80%' }} // Full width and height of the container
           />

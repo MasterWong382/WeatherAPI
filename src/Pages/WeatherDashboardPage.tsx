@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ColumnDashboard from "../Components/ColumnDashboard";
 import LineDashboard from "../Components/LineDashboard";
 import AreaChartDashboard from "../Components/AreaChartDashboard";
@@ -36,12 +36,11 @@ const WeatherDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize IndexedDB
-  const initDB = async (): Promise<IDBDatabase> => {
+  const initDB = useCallback(async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, 1);
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: "id" });
@@ -51,26 +50,27 @@ const WeatherDashboardPage: React.FC = () => {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-  };
+  }, []);
 
-  // Save data to IndexedDB
-  const saveData = async (data: WeatherData) => {
-    const db = await initDB();
-    return new Promise<void>((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put({ id: "weatherData", ...data });
+  const saveData = useCallback(
+    async (data: WeatherData) => {
+      const db = await initDB();
+      return new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put({ id: "weatherData", ...data });
 
-      request.onsuccess = () => console.log("Data saved successfully");
-      request.onerror = () => reject(request.error);
+        request.onsuccess = () => console.log("Data saved successfully");
+        request.onerror = () => reject(request.error);
 
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
-    });
-  };
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+    },
+    [initDB]
+  );
 
-  // Get data from IndexedDB
-  const getData = async (): Promise<WeatherData | null> => {
+  const getData = useCallback(async (): Promise<WeatherData | null> => {
     const db = await initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, "readonly");
@@ -80,15 +80,13 @@ const WeatherDashboardPage: React.FC = () => {
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
-  };
+  }, [initDB]);
 
-  // Fetch weather data
   useEffect(() => {
     const fetchWeatherData = async () => {
       setLoading(true);
       setError(null);
 
-      // API URL
       const API =
         "https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=relativehumidity_2m,direct_radiation&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSingapore&start_date=2024-11-01&end_date=2024-11-10";
 
@@ -116,7 +114,7 @@ const WeatherDashboardPage: React.FC = () => {
     };
 
     fetchWeatherData();
-  }, []);
+  }, [getData, saveData]);
 
   if (loading) {
     return <div>Loading...</div>;
